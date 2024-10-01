@@ -2,7 +2,7 @@ const express = require("express");
 const Book = require("../models/book");
 const ExpressError = require("../expressError");
 const jsonschema = require("jsonschema");
-const bookSchema = require("../schemas/bookSchema.json")
+const bookSchema = require("../schemas/bookSchema.json");
 const router = new express.Router();
 
 
@@ -22,6 +22,9 @@ router.get("/", async function (req, res, next) {
 router.get("/:id", async function (req, res, next) {
   try {
     const book = await Book.findOne(req.params.id);
+    if (!book){
+      throw new ExpressError("Cannot find book", 404);
+    }
     return res.json({ book });
   } catch (err) {
     return next(err);
@@ -50,6 +53,10 @@ router.post("/", async function (req, res, next) {
 
 router.put("/:isbn", async function (req, res, next) {
   try {
+    const isBook = await Book.findOne(req.params.isbn);
+    if (!isBook){
+      throw new ExpressError("Cannot find book", 404);
+    }
     const result = jsonschema.validate(req.body, bookSchema);
     if (!result.valid) {
       const listOfErrors = result.errors.map(e => e.stack);
